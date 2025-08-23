@@ -59,7 +59,18 @@ def add_friend():
 
     return jsonify({'message': 'Friend added successfully'}), 201
 
-
+@app.route('/api/users/<int:user_id>/friends')
+def get_friends(user_id):
+    user = User.query.get_or_404(user_id)
+    friendships = Friend.query.filter_by(user_id=user_id).all()
+    
+    friends_list = []
+    for friendship in friendships:
+        friend_user = User.query.get(friendship.friend_id)
+        if friend_user:
+            friends_list.append({'id': friend_user.id, 'username': friend_user.username})
+            
+    return jsonify({'user_id': user.id, 'friends': friends_list})
 
 
     if __name__ == '__main__':
