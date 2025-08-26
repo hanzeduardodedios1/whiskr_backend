@@ -73,6 +73,20 @@ def get_friends(user_id):
     return jsonify({'user_id': user.id, 'friends': friends_list})
 
 
+@app.route('/api/users/<int:user_id>/friends/<int:friend_id>', methods=['DELETE'])
+def remove_friend(user_id, friend_id):
+    # Find the friendship in the database
+    friendship = Friend.query.filter_by(user_id=user_id, friend_id=friend_id).first()
+
+    if not friendship:
+        return jsonify({'error': 'Friendship not found'}), 404
+
+    # Delete the friendship
+    db.session.delete(friendship)
+    db.session.commit()
+
+    return jsonify({'message': 'Friendship deleted successfully'}), 200
+    
     if __name__ == '__main__':
         app.run(debug=True)
     #this must remain at the end to register all API endpoints with the app before it runs
