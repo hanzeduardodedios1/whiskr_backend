@@ -87,6 +87,35 @@ def remove_friend(user_id, friend_id):
 
     return jsonify({'message': 'Friendship deleted successfully'}), 200
     
+@app.route('/api/friends/add_by_username', methods=['POST'])
+def add_friend_by_username():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    username = data.get('username')
+
+    if not all([user_id, username]):
+        return jsonify({"error": "Missing user_id or username"}), 400
+
+    friend_user = User.query.filter_by(username=username).first()
+
+    if not friend_user:
+        return jsonify({"error": "User not found"}), 404
+        
+    # Check if the friendship already exists
+    friendship_exists = Friend.query.filter(
+        ((Friend.user_id == user_id) & (Friend.friend_id == friend_user.id)) |
+        ((Friend.user_id == friend_user.id) & (Friend.friend_id == user_id))
+    ).first()
+
+    if friendship_exists:
+        return jsonify({"error": "Friendship already exists"}), 409
+
+    new_friendship = Friend(user_id=user_id, friend_id=friend_user.id)
+    db.session.add(new_friendship)
+    db.session.commit()
+
+    return jsonify({"message": "Friend added successfully"}), 201    
+
     if __name__ == '__main__':
         app.run(debug=True)
     #this must remain at the end to register all API endpoints with the app before it runs
